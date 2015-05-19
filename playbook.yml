@@ -1,0 +1,43 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Add the OPAM PPA
+      apt_repository: repo="ppa:avsm/ppa" update_cache=yes
+      sudo: yes
+
+    - name: Install avahi
+      apt: pkg=avahi-daemon
+      sudo: yes
+
+    - name: Install Timezone data
+      apt: pkg=tzdata
+      sudo: yes
+
+    - name: Set timezone
+      copy: content=Australia/Melbourne dest=/etc/timezone
+      sudo: yes
+
+    - name: Set Local Time
+      shell: dpkg-reconfigure --frontend noninteractive tzdata
+      sudo: yes
+
+    - name: Install mirage dependencies
+      apt: pkg={{ item }}
+      sudo: yes
+      with_items:
+      - build-essential
+      - m4
+      - ocaml
+      - ocaml-native-compilers
+      - camlp4-extra
+      - opam
+
+    - name: Init opam
+      shell: opam init -y
+
+    - name: Add opam to environment
+      lineinfile: dest=~/.bashrc line="eval `opam config env`"
+
+    - name: Install mirage
+      shell: opam install mirage -y
